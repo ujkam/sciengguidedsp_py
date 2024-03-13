@@ -1,0 +1,1270 @@
+Programs from: "The Scientist and Engineer's Guide to Digital Signal
+Processing." Visit our website at:  www.dspguide.com.  All these programs may
+be copied, distributed, and used for any noncommercial purpose.
+
+
+TABLE 2-1
+100 CALCULATION OF THE MEAN AND STANDARD DEVIATION
+110 '
+120 DIM X[511]           'The signal is held in X[0] to X[511]
+130 N% = 512             'N% is the number of points in the signal
+140 '
+150 GOSUB XXXX           'Mythical subroutine that loads the signal into X[ ]
+160 '
+170 MEAN = 0             'Find the mean via Eq. 2-1
+180 FOR I% = 0 TO N%-1
+190   MEAN = MEAN + X[I%]
+200 NEXT I%
+210 MEAN = MEAN/N%
+220 '
+230 VARIANCE = 0         'Find the standard deviation via Eq. 2-2
+240 FOR I% = 0 TO N%-1
+250   VARIANCE = VARIANCE + ( X[I%] - MEAN )^2
+260 NEXT I%
+270 VARIANCE = VARIANCE/(N%-1)
+280 SD = SQR(VARIANCE)
+290 '
+300 PRINT  MEAN  SD      'Print the calculated mean and standard deviation
+310 '
+320 END
+
+
+TABLE 2-2
+100 'MEAN AND STANDARD DEVIATION USING RUNNING STATISTICS
+110 '
+120 DIM X[511]           'The signal is held in X[0] to X[511]
+130 '
+140 GOSUB XXXX           'Mythical subroutine that loads the signal into X[ ]
+150 '
+160 N% = 0               'Zero the three running parameters 
+170 SUM = 0
+180 SUMSQUARES = 0
+190 '
+200 FOR I% = 0 TO 511    'Loop through each sample in the signal
+210   '
+220   N% = N%+1          'Update the three parameters 
+230   SUM = SUM + X(I%)
+240   SUMSQUARES = SUMSQUARES + X(I%)^2
+250   '
+260   MEAN = SUM/N% 'Calculate mean and standard deviation via Eq. 2-3
+270   VARIANCE = (SUMSQUARES -  SUM^2/N%) / (N%-1)
+280   SD = SQR(VARIANCE)
+290   '
+300   PRINT  MEAN   SD   'Print the running mean and standard deviation
+310   '
+320 NEXT I%
+330 '     
+340 END
+
+
+TABLE 2-3
+100 'CALCULATION OF THE HISTOGRAM, MEAN, AND STANDARD DEVIATION
+110 '
+120 DIM X%[25000]        'X%[0] to X%[25000] holds the signal being processed
+130 DIM H%[255]          'H%[0] to H%[255] holds the histogram
+140 N% = 25001           'Set the number of points in the signal
+150 '
+160 FOR I% = 0 TO 255    'Zero, so it can be used as an accumulator
+170   H%[I%] = 0
+180 NEXT I%
+190 '
+200 GOSUB XXXX           'Mythical subroutine that loads the signal into X%[ ]
+210 '
+220 FOR I% = 0 TO 25000  'Calculate the histogram for 25001 points
+230   H%[ X%[I%] ] = H%[ X%[I%] ] + 1   
+240 NEXT I%
+250 '
+260 MEAN = 0             'Calculate the mean via Eq. 2-6
+270 FOR I% = 0 TO 255
+280   MEAN = MEAN + I% * H%[I%]
+290 NEXT I%
+300 MEAN = MEAN / N%
+310 '
+320 VARIANCE = 0         'Calculate the standard deviation via Eq. 2-7
+330 FOR I% = 0 TO 255
+340   VARIANCE = VARIANCE + H[I%] * (I%-MEAN)^2
+350 NEXT I%
+360 VARIANCE = VARIANCE / (N%-1)
+370 SD = SQR(VARIANCE)
+380 '
+390 PRINT  MEAN  SD      'Print the calculated mean and standard deviation.
+400 '
+410 END
+
+
+TABLE 2-4
+100 'CALCULATION OF BINNED HISTOGRAM
+110 '
+120 DIM X[25000]         'X[0] to X[25000] holds the floating point signal, 
+130 '                    'with each sample being in the range: 0.0 to 10.0 
+140 DIM H%[999]          'H%[0] to H%[999] holds the binned histogram
+150 '
+160 FOR I% = 0 TO 999    'Zero the binned histogram for use as an accumulator
+170   H%[I%] = 0
+180 NEXT I%
+190 '
+200 GOSUB XXXX           'Mythical subroutine that loads the signal into X%[ ]
+210 '
+220 FOR I% = 0 TO 25000  'Calculate the binned histogram for 25001 points
+230   BINNUM% = INT( X[I%] * .01 )
+240   H%[ BINNUM%] = H%[ BINNUM%] + 1   
+250 NEXT I%
+260 '
+270 END
+
+
+TABLE 6-1
+100  'CONVOLUTION USING THE INPUT SIDE ALGORITHM
+110  '
+120 DIM X[80]            'The input signal, 81 points
+130 DIM H[30]            'The impulse response, 31 points
+140 DIM Y[110]           'The output signal, 111 points
+150  '
+160 GOSUB XXXX           'Mythical subroutine to load X[ ] and H[ ] 
+170  '
+180 FOR I% = 0 TO 110    'Zero the output array
+190   Y(I%) = 0
+200 NEXT I%
+210  '
+220 FOR I% = 0 TO 80     'Loop for each point in X[ ]
+230   FOR J% = 0 TO 30   'Loop for each point in H[ ]
+240     Y[I%+J%] = Y[I%+J%] + X[I%]*H[J%]
+250   NEXT J%
+260 NEXT I%
+270  '
+280 GOSUB XXXX           'Mythical subroutine to store Y[ ]
+290  '
+300 END
+
+
+TABLE 6-2
+100  'CONVOLUTION USING THE OUTPUT SIDE ALGORITHM
+110  '
+120 DIM X[80]            'The input signal, 81 points
+130 DIM H[30]            'The impulse response, 31 points
+140 DIM Y[110]           'The output signal, 111 points
+150  '
+160 GOSUB XXXX           'Mythical subroutine to load X[ ] and H[ ] 
+170  '                             
+180 FOR I% = 0 TO 110    'Loop for each point in Y[ ]
+190   Y[I%] = 0          'Zero the sample in the output array 
+200   FOR J% = 0 TO 30   'Loop for each point in H[ ]
+210     IF (I%-J% < 0)     THEN GOTO 240
+220     IF (I%-J% > 80)    THEN GOTO 240
+230     Y(I%) = Y(I%) + H(J%) * X(I%-J%)
+240   NEXT J%
+250 NEXT I%
+260  '
+270 GOSUB XXXX           'Mythical subroutine to store Y[ ]
+280  '
+290 END
+
+
+TABLE 8-1
+100 'THE INVERSE DISCRETE FOURIER TRANSFORM  
+110 'The time domain signal, held in XX[ ], is calculated from the frequency 
+120 'domain signals, held in REX[ ] and IMX[ ].    
+130 '
+140 DIM XX[511]       'XX[ ]  holds the time domain signal
+150 DIM REX[256]      'REX[ ] holds the real part of the frequency domain
+160 DIM IMX[256]      'IMX[ ] holds the imaginary part of the frequency domain
+170 '
+180 PI = 3.14159265   'Set the constant, PI
+190 N% = 512          'N% is the number of points in XX[ ]
+200 '
+210 GOSUB XXXX        'Mythical subroutine to load data into REX[ ] & IMX[ ] 
+220 '
+230 
+240 '                 'Find the cosine and sine wave amplitudes using Eq. 8-3
+250 FOR K% = 0 TO 256           
+260   REX[K%] =  REX[K%] / (N%/2)    
+270   IMX[K%]  = -IMX[K%] / (N%/2)  
+280 NEXT K%                               
+290 '
+300 REX[0] = REX[0] / 2
+310 REX[256] = REX[256] / 2
+320 '
+330 '
+340 FOR I% = 0 TO 511  'Zero XX[ ] so it can be used as an accumulator
+350   XX[I%] = 0
+360 NEXT I%
+370 '
+380 '              Eq. 8-2  SYNTHESIS METHOD #1.  Loop through each 
+390 '              frequency generating the entire length of the sine & cosine 
+400 '              waves, and add them to the accumulator signal, XX[ ] 
+410 '
+420 FOR K% = 0 TO 256      'K% loops through each sample in REX[ ] and IMX[ ]
+430   FOR I% = 0 TO 511    'I% loops through each sample in XX[ ]
+440     '             
+450     XX[I%] = XX[I%] + REX[K%] * COS(2*PI*K%*I%/N%)
+460     XX[I%] = XX[I%] + IMX[K%] * SIN(2*PI*K%*I%/N%)
+470     '
+480   NEXT I%
+490 NEXT K%
+500 '
+510 END 
+
+ALTERNATE CODE FOR LINES 380 to 510
+380 'Eq. 8-2  SYNTHESIS METHOD #2.  Loop through each 
+390 'sample in the time domain, and sum the corresponding 
+400 'samples from each cosine and sine wave 
+410 '
+420 FOR I% = 0 TO 511       'I% loops through each sample in XX[ ]
+430   FOR K% = 0 TO 256     'K% loops through each sample in REX[ ] and IMX[ ]
+440     '             
+450     XX[I%] = XX[I%] + REX[K%] * COS(2*PI*K%*I%/N%)
+460     XX[I%] = XX[I%] + IMX[K%] * SIN(2*PI*K%*I%/N%)
+470     '
+480   NEXT K%
+490 NEXT I%
+500 '
+510 END
+
+
+TABLE 8-2
+100 'THE DISCRETE FOURIER TRANSFORM 
+110 'The frequency domain signals, held in REX[ ] and IMX[ ], are 
+120 'calculated from the time domain signal, held in XX[ ].
+130 '
+140 DIM XX[511]       'XX[ ]  holds the time domain signal
+150 DIM REX[256]      'REX[ ] holds the real part of the frequency domain
+160 DIM IMX[256]      'IMX[ ] holds the imaginary part of the frequency domain
+170 '
+180 PI = 3.14159265   'Set the constant, PI
+190 N% = 512          'N% is the number of points in XX[ ]
+200 '
+210 GOSUB XXXX        'Mythical subroutine to load data into XX[ ]      
+220 '
+230 '
+240 FOR K% = 0 TO 256 'Zero REX[ ] & IMX[ ] so they can be accumulators 
+250   REX[K%] = 0
+260   IMX[K%] = 0
+270 NEXT K%
+280 '
+290 '              'Correlate XX[ ] with the cosine and sine waves, Eq. 8-4
+300 '
+310 FOR K% = 0 TO 256      'K% loops through each sample in REX[ ] and IMX[ ]
+320   FOR I% = 0 TO 511    'I% loops through each sample in XX[ ]
+330     '
+340     REX[K%] = REX[K%] + X[I%] * COS(2*PI*K%*I%/N%)
+350     IMX[K%] = IMX[K%]  -  X[I%] * SIN(2*PI*K%*I%/N%)
+360     '
+370   NEXT I%
+380 NEXT K%
+390 '
+400 END
+
+
+TABLE 8-3
+100 'RECTANGULAR-TO-POLAR & POLAR-TO-RECTANGULAR CONVERSION
+110 '
+120 DIM REX[256]    'REX[ ]       holds the real part
+130 DIM IMX[256]    'IMX[ ]       holds the imaginary part
+140 DIM MAG[256]    'MAG[ ]       holds the magnitude
+150 DIM PHASE[256]  'PHASE[ ] holds the phase
+160 '
+170 PI = 3.14159265
+180 '
+190 GOSUB XXXX      'Mythical subroutine to load data into REX[ ] and IMX[ ]
+200 '
+210 '
+220 '               'Rectangular-to-polar conversion, Eq. 8-6
+230 FOR K% = 0 TO 256
+240   MAG[K%] = SQR( REX[K%]^2 + IMX[K%]^2 )     'from Eq. 8-6
+250   IF REX[K%] = 0 THEN REX[K%] = 1E-20        'prevent divide by 0 
+260   PHASE[K%] = ATN( IMX[K%] / REX[K%] )       'from Eq. 8-6  
+270   '                                          'correct the arctan   
+280   IF REX[K%] < 0 AND IMX[K%] <   0 THEN PHASE[K%] = PHASE[K%]  - PI
+290   IF REX[K%] < 0 AND IMX[K%] >= 0 THEN PHASE[K%] = PHASE[K%] + PI
+300 NEXT K%
+310 '         
+320 '    
+330 '               'Polar-to-rectangular conversion, Eq. 8-7
+340 FOR K% = 0 TO 256
+350   REX[K%] = MAG[K%] * COS( PHASE[K%] )
+360   IMX[K%] = MAG[K%] *  SIN( PHASE[K%] )
+370 NEXT K%
+380 ' 
+390 END
+
+ 
+TABLE 8-4     
+100 ' PHASE UNWRAPPING 
+110 '
+120 DIM PHASE[256]      'PHASE[ ]   holds the original phase
+130 DIM UWPHASE[256]    'UWPHASE[ ] holds the unwrapped phase
+140 '
+150 PI = 3.14159265
+160 '
+170 GOSUB XXXX          'Mythical subroutine to load data into PHASE[ ]
+180 '
+190 UWPHASE[0] = 0      'The first point of all phase signals is zero    
+200 '
+210 '                   'Go through the unwrapping algorithm
+220 FOR K% = 1 TO 256
+230   C% = CINT( (UWPHASE[K%-1] - PHASE[K%]) / (2 * PI) )
+240   UWPHASE[K%] = PHASE[K%] + C%*2*PI
+250 NEXT K%
+260 '
+270 END
+
+
+TABLE 12-1
+6000 'NEGATIVE FREQUENCY GENERATION
+6010 'This subroutine creates the complex frequency domain from the real 
+6020 'frequency domain. Upon entry to this subroutine, N% contains the number
+6030 'of points in the signals, and REX[ ] and IMX[ ] contain the real 
+6040 'frequency domain in samples 0 to N%/2. On return, REX[ ] and IMX[ ] 
+6045 'contain the complex frequency domain in samples 0 to N%-1.
+6050 '
+6060 FOR K% = (N%/2+1) TO (N%-1)
+6070   REX[K%] =  REX[N%-K%]
+6080   IMX[K%] = -IMX[N%-K%]
+6090 NEXT K%
+6100 '
+6110 RETURN
+
+
+TABLE 12-2
+5000 'COMPLEX DFT BY CORRELATION
+5010 'Upon entry, N% contains the number of points in the DFT, and
+5020 'XR[ ] and XI[ ] contain the real and imaginary parts of the time domain.
+5030 'Upon return, REX[ ] and IMX[ ] contain the frequency domain data.  
+5040 'All signals run from 0 to N%-1.
+5050 '
+5060 PI = 3.14159265             'Set constants
+5070 '
+5080 FOR K% = 0 TO N%-1          'Zero REX[ ] and IMX[ ], so they can be used
+5090   REX[K%] = 0               'as accumulators during the correlation
+5100   IMX[K%] = 0
+5110 NEXT K%
+5120 '
+5130 FOR K% = 0 TO N%-1          'Loop for each value in frequency domain
+5140   FOR I% = 0 TO N%-1        'Correlate with the complex sinusoid, SR & SI
+5150 '
+5160     SR =  COS(2*PI*K%*I%/N%)      'Calculate complex sinusoid
+5170     SI  = -SIN(2*PI*K%*I%/N%)
+5180     REX[K%] = REX[K%] + XR[I%]*SR - XI[I%]*SI
+5190     IMX[K%] = IMX[K%] + XR[I%]*SI + XI[I%]*SR
+5200 '
+5210   NEXT I%
+5220 NEXT K%
+5230 '
+5240 RETURN
+
+
+TABLE 12-3
+    SUBROUTINE  FFT(X,M)
+    COMPLEX X(4096),U,S,T
+    PI=3.14159265
+    N=2**M
+    DO 20 L=1,M
+    LE=2**(M+1-L)
+    LE2=LE/2
+    U=(1.0,0.0)
+    S=CMPLX(COS(PI/FLOAT(LE2)),-SIN(PI/FLOAT(LE2)))
+    DO 20 J=1,LE2
+    DO 10 I=J,N,LE
+    IP=I+LE2
+    T=X(I)+X(IP)
+    X(IP)=(X(I)-X(IP))*U
+10  X(I)=T
+20  U=U*S
+    ND2=N/2
+    NM1=N-1
+    J=1
+    DO 50 I=1,NM1
+    IF(I.GE.J) GO TO 30
+    T=X(J)
+    X(J)=X(I)
+    X(I)=T
+30  K=ND2
+40  IF(K.GE.J) GO TO 50
+    J=J-K
+    K=K/2
+    GO TO 40
+50  J=J+K
+    RETURN
+    END
+
+
+TABLE 12-4
+1000 'THE FAST FOURIER TRANSFORM
+1010 'Upon entry, N% contains the number of points in the DFT, REX[ ] and
+1020 'IMX[ ] contain the real and imaginary parts of the input.  Upon return,
+1030 'REX[ ] & IMX[ ] contain the DFT output. All signals run from 0 to N%-1.
+1040 '
+1050 PI = 3.14159265                    'Set constants
+1060 NM1% = N%-1
+1070 ND2% = N%/2
+1080 M% = CINT(LOG(N%)/LOG(2))
+1090 J% = ND2%
+1100 '
+1110 FOR I% = 1 TO N%-2                 'Bit reversal sorting
+1120   IF I% >= J% THEN GOTO 1190
+1130   TR = REX[J%]
+1140   TI = IMX[J%]
+1150   REX[J%] = REX[I%]
+1160   IMX[J%] = IMX[I%]
+1170   REX[I%] = TR
+1180   IMX[I%] = TI
+1190   K% = ND2%
+1200   IF K% > J% THEN GOTO 1240
+1210   J% = J%-K%
+1220   K% = K%/2
+1230   GOTO 1200
+1240   J% = J%+K%
+1250 NEXT I%
+1260 '
+1270 FOR L% = 1 TO M%                   'Loop for each stage
+1280   LE% = CINT(2^L%)
+1290   LE2% = LE%/2
+1300   UR = 1
+1310   UI = 0
+1320   SR =  COS(PI/LE2%)               'Calculate sine & cosine values
+1330   SI  = -SIN(PI/LE2%)
+1340   FOR J% = 1 TO LE2%               'Loop for each sub DFT
+1350     JM1% = J%-1
+1360     FOR I% = JM1% TO NM1% STEP LE%     'Loop for each butterfly
+1370       IP% = I%+LE2%
+1380       TR = REX[IP%]*UR - IMX[IP%]*UI   'Butterfly calculation
+1390       TI = REX[IP%]*UI + IMX[IP%]*UR
+1400       REX[IP%] = REX[I%]-TR
+1410       IMX[IP%] = IMX[I%]-TI
+1420       REX[I%]  = REX[I%]+TR
+1430       IMX[I%]  = IMX[I%]+TI   
+1440     NEXT I%
+1450     TR = UR
+1460     UR = TR*SR - UI*SI
+1470     UI = TR*SI + UI*SR
+1480   NEXT J%
+1490 NEXT L%
+1500 '
+1510 RETURN
+
+
+TABLE 12-5
+2000 'INVERSE FAST FOURIER TRANSFORM SUBROUTINE
+2010 'Upon entry, N% contains the number of points in the IDFT, REX[ ] & IMX[]
+2020 'contain the real & imaginary parts of the complex frequency domain. 
+2030 'Upon return, REX[ ] and IMX[ ] contain the complex time domain.
+2040 'All signals run from 0 to N%-1.
+2050 '
+2060 FOR K% = 0 TO N%-1           'Change the sign of IMX[ ]
+2070   IMX[K%] = -IMX[K%]
+2080 NEXT K%
+2090 '
+2100 GOSUB 1000                   'Calculate forward FFT  (Table 12-3)
+2110 '
+2120 FOR I% = 0 TO N%-1           'Divide the time domain by N% and
+2130   REX[I%] =  REX[I%]/N% 'change the sign of IMX[ ]
+2140   IMX[I%] = -IMX[I%]/N%
+2150 NEXT I%
+2160 '
+2170 RETURN
+
+
+TABLE 12-6
+4000 'INVERSE FFT FOR REAL SIGNALS
+4010 'Upon entry, N% contains the number of points in the IDFT, REX[ ] and
+4020 'IMX[ ] contain the real & imaginary parts of the frequency domain 
+4030 'running from index 0 to N%/2.  The remaining samples in REX[ ] and IMX[] 
+4040 'are ignored. Upon return, REX[ ] contains the real time domain, IMX[ ]
+4045 'contains zeros.
+4050 '
+4060 '
+4070 FOR K% = (N%/2+1) TO (N%-1)      'Make frequency domain symmetrical
+4080   REX[K%] =  REX[N%-K%]          '(as in Table 12-1)
+4090   IMX[K%] = -IMX[N%-K%]
+4100 NEXT K%
+4110 '
+4120 FOR K% = 0 TO N%-1               'Add real and imaginary parts together
+4130   REX[K%] =  REX[K%]+IMX[K%]
+4140 NEXT K%
+4150 '
+4160 GOSUB 3000                       'Calculate forward real DFT (TABLE 12-6)
+4170 '
+4180 FOR I% = 0 TO N%-1               'Add real and imaginary parts together 
+4190   REX[I%] = (REX[I%]+IMX[I%])/N% 'and divide the time domain by N%
+4200   IMX[I%] = 0
+4210 NEXT I%
+4220 '
+4230 RETURN
+
+
+TABLE 12-7
+3000 'FFT FOR REAL SIGNALS
+3010 'Upon entry, N% contains the number of points in the DFT, REX[ ] contains
+3020 'the real input signal, while values in IMX[ ] are ignored.  Upon return,
+3030 'REX[ ] & IMX[ ] contain the DFT output. All signals run from 0 to N%-1.
+3040 '
+3050 NH% = N%/2-1                   'Separate even and odd points
+3060 FOR I% = 0 TO NH%
+3070   REX(I%) = REX(2*I%)
+3080   IMX(I%) = REX(2*I%+1)
+3090 NEXT I%
+3100 '
+3110 N% = N%/2                      'Calculate N%/2 point FFT
+3120 GOSUB 1000                     '(GOSUB 1000 is the FFT in Table 12-3)
+3130 N% = N%*2
+3140 '
+3150 NM1% = N%-1                    'Even/odd frequency domain decomposition
+3160 ND2% = N%/2
+3170 N4% = N%/4-1                                
+3180 FOR I% = 1 TO N4%
+3190   IM%  = ND2%-I%
+3200   IP2% = I%+ND2%
+3210   IPM% = IM%+ND2%
+3220   REX(IP2%) =  (IMX(I%) + IMX(IM%))/2
+3230   REX(IPM%) =  REX(IP2%)
+3240   IMX(IP2%) = -(REX(I%) - REX(IM%))/2
+3250   IMX(IPM%) = -IMX(IP2%)
+3260   REX(I%)   =  (REX(I%) + REX(IM%))/2
+3270   REX(IM%)  =  REX(I%)
+3280   IMX(I%)   =  (IMX(I%) - IMX(IM%))/2
+3290   IMX(IM%)  = -IMX(I%)
+3300 NEXT I%
+3310 REX(N%*3/4) = IMX(N%/4)
+3320 REX(ND2%) = IMX(0)
+3330 IMX(N%*3/4) = 0
+3340 IMX(ND2%) = 0
+3350 IMX(N%/4) = 0
+3360 IMX(0) = 0
+3370 '
+3380 PI = 3.14159265                'Complete the last FFT stage
+3390 L% = CINT(LOG(N%)/LOG(2))                   
+3400 LE% = CINT(2^L%)
+3410 LE2% = LE%/2
+3420 UR = 1
+3430 UI = 0
+3440 SR =  COS(PI/LE2%)
+3450 SI = -SIN(PI/LE2%)
+3460 FOR J% = 1 TO LE2%
+3470   JM1% = J%-1
+3480   FOR I% = JM1% TO NM1% STEP LE%
+3490     IP% = I%+LE2%
+3500     TR = REX[IP%]*UR - IMX[IP%]*UI
+3510     TI = REX[IP%]*UI + IMX[IP%]*UR
+3520     REX[IP%] = REX[I%]-TR
+3530     IMX[IP%] = IMX[I%]-TI
+3540     REX[I%]  = REX[I%]+TR
+3550     IMX[I%]  = IMX[I%]+TI
+3560   NEXT I%
+3570   TR = UR
+3580   UR = TR*SR - UI*SI
+3590   UI = TR*SI + UI*SR
+3600 NEXT J%
+3610 RETURN
+
+
+TABLE 15-1
+100 'MOVING AVERAGE FILTER
+110 'This program filters 5000 samples with a 101 point moving
+120 'average filter, resulting in 4900 samples of filtered data.
+130 '
+140 DIM X[4999]                    'X[ ] holds the input signal
+150 DIM Y[4999]                    'Y[ ] holds the output signal
+160 '
+170 GOSUB XXXX                     'Mythical subroutine to load X[ ]
+180 '
+190 FOR I% = 50 TO 4949            'Loop for each point in the output signal
+200   Y[I%] = 0                    'Zero, so it can be used as an accumulator 
+210   FOR J% = -50 TO 50           'Calculate the summation
+220     Y[I%] = Y[I%] + X(I%+J%]
+230   NEXT J%
+240   Y[I%] = Y[I%]/101            'Complete the average by dividing
+250 NEXT I%
+260 '
+270 END
+
+
+TABLE 15-2
+100 'MOVING AVERAGE FILTER IMPLEMENTED BY RECURSION
+110 'This program filters 5000 samples with a 101 point moving
+120 'average filter, resulting in 4900 samples of filtered data.
+130 'A double precision accumulator is used to prevent round-off drift.
+140 '
+150 DIM X[4999]              'X[ ] holds the input signal
+160 DIM Y[4999]              'Y[ ] holds the output signal
+170 DEFDBL  ACC              'Define the variable ACC to be double precision
+180 '
+190 GOSUB XXXX               'Mythical subroutine to load X[ ]
+200 '
+210 ACC = 0                  'Find Y[50] by averaging points X[0] to X[100]
+220 FOR I% = 0 TO 100        
+230   ACC = ACC + X[I%]
+240 NEXT I%
+250 Y[[50] = ACC/101
+260 '                        'Recursive moving average filter (Eq. 15-3)
+270 FOR I% = 51 TO 4949
+280   ACC = ACC + X[I%+50] - X[I%-51]
+290   Y[I%] = ACC
+300 NEXT I%                       
+310 '
+320 END
+
+
+TABLE 16-1
+100 'LOW-PASS WINDOWED-SINC FILTER 
+110 'This program filters 5000 samples with a 101 point windowed-sinc filter, 
+120 'resulting in 4900 samples of filtered data.
+130 '
+140 DIM X[4999]             'X[ ] holds the input signal
+150 DIM Y[4999]             'Y[ ] holds the output signal
+160 DIM H[100]              'H[ ] holds the filter kernel
+170 '
+180 PI = 3.14159265
+190 FC = .14                'Set the cutoff frequency (between 0 and 0.5)
+200 M% = 100                'Set filter length (101 points)
+210 '
+220 GOSUB XXXX              'Mythical subroutine to load X[ ]
+230 '
+240 '                       'Calculate the low-pass filter kernel via Eq. 16-4
+250 FOR I% = 0 TO 100
+260    IF (I%-M%/2) = 0 THEN H[I%] = 2*PI*FC
+270    IF (I%-M%/2) <> 0  THEN H[I%] = SIN(2*PI*FC * (I%-M%/2)) / (I%-M%/2)
+280    H[I%] = H[I%] * (0.54 - 0.46*COS(2*PI*I%/M%) )
+290 NEXT I%
+300 '
+310 SUM = 0                 'Normalize the low-pass filter kernel for 
+320 FOR I% = 0 TO 100       'unity gain at DC
+330    SUM = SUM + H[I%]
+340 NEXT I%
+350 '
+360 FOR I% = 0 TO 100
+370    H[I%] = H[I%] / SUM
+380 NEXT I%
+390 '               
+400 FOR J% = 100 TO 4999    'Convolve the input signal & filter kernel
+410    Y[J%] = 0                  
+420    FOR I% = 0 TO 100
+430       Y[J%] = Y[J%] + X[J%-I%] * H[I%]
+440    NEXT I%
+450 NEXT J%
+460 '
+470 END
+
+
+TABLE 16-2
+100 'BAND-PASS WINDOWED-SINC FILTER
+110 'This program calculates an 801 point band-pass filter kernel
+120 '
+130 DIM A[800]           'A[ ]  workspace for the lower cutoff
+140 DIM B[800]           'B[ ]  workspace for the upper cutoff
+150 DIM H[800]           'H[ ]  holds the final filter kernel
+160 '
+170 PI = 3.1415926
+180 M% = 800             'Set filter kernel length (801 points)
+190 '
+200 '                    'Calculate the first low-pass filter kernel via Eq.
+210 FC = 0.196           '16-4, with a cutoff frequency of 0.196, store in A[]
+220 FOR I% = 0 TO 800
+230    IF (I%-M%/2) = 0 THEN A[I%] = 2*PI*FC
+240    IF (I%-M%/2) <> 0  THEN A[I%] = SIN(2*PI*FC * (I%-M%/2)) / (I%-M%/2)
+250    A[I%] = A[I%] * (0.42 - 0.5*COS(2*PI*I%/M%) + 0.08*COS(4*PI*I%/M%))     
+260 NEXT I%
+270 '
+280 SUM = 0              'Normalize the first low-pass filter kernel for
+290 FOR I% = 0 TO 800    'unity gain at DC
+300    SUM = SUM + A[I%]
+310 NEXT I%
+320 '
+330 FOR I% = 0 TO 800
+340    A[I%] = A[I%] / SUM
+350 NEXT I%
+360 '                    'Calculate the second low-pass filter kernel via Eq.
+370 FC = 0.204           '16-4, with a cutoff frequency of 0.204, store in B[]
+380 FOR I% = 0 TO 800
+390    IF (I%-M%/2) = 0 THEN B[I%] = 2*PI*FC
+400    IF (I%-M%/2) <> 0  THEN B[I%] = SIN(2*PI*FC * (I%-M%/2)) / (I%-M%/2)
+410    B[I%] = B[I%] * (0.42 - 0.5*COS(2*PI*I%/M%) + 0.08*COS(4*PI*I%/M%))     
+420 NEXT I%
+430 '
+440 SUM = 0              'Normalize the second low-pass filter kernel for
+450 FOR I% = 0 TO 800    'unity gain at DC
+460    SUM = SUM + B[I%]
+470 NEXT I%
+480 '
+490 FOR I% = 0 TO 800
+500    B[I%] = B[I%] / SUM
+510 NEXT I%
+520 '               
+530 FOR I% = 0 TO 800     'Change the low-pass filter kernel in B[ ] into a 
+540   B[I%] = - B[I%]     'high-pass filter kernel using spectral inversion 
+550 NEXT I%               '(as in Fig. 14-5)
+560 B[400] =  B[400] + 1     
+570 ' 
+580 '
+590 FOR I% = 0 TO 800         'Add the low-pass filter kernel in A[ ], to the 
+600    H[I%] = A[I%] + B[I%]  'high-passfilter kernel in B[ ], to form a band
+610 NEXT I%                   'reject filter kernel, stored in H[ ] (Fig.14-8)
+620 '
+630 FOR I% = 0 TO 800     'Change the band-reject filter kernel into a 
+640    H[I%] = -H[I%]     'band-passfilter kernel by using spectral inversion
+650 NEXT I%                            
+660 H[400] =  H[400] + 1
+670 '                     'The band-pass filter kernel now resides in H[ ]
+680 END
+
+
+TABLE 17-1
+100 'CUSTOM FILTER DESIGN 
+110 'This program converts an aliased 1024 point impulse response into an M+1
+120 'point filter kernel (such as Fig. 17-1b being converted into Fig. 17-1c) 
+130 '
+140 DIM REX[1023]           'REX[ ] holds the signal being converted 
+150 DIM T[1023]             'T[ ] is a temporary storage buffer
+160 '
+170 PI = 3.14159265
+180 M% = 40                 'Set filter kernel length (41 total points)
+190 '                                  
+200 GOSUB XXXX              'Mythical sub to load REX[ ] with impulse response
+210 '
+220 FOR I% = 0 TO 1023      'Shift (rotate) the signal M/2 points to the right
+230    INDEX% = I% + M%/2
+240    IF INDEX% > 1023 THEN INDEX% = INDEX%-1024
+250    T[INDEX%] = REX[I%]
+260 NEXT I%
+270 '
+280 FOR I% = 0 TO 1023       
+290    REX[I%] = T[I%]
+300 NEXT I%
+310 '                       'Truncate and window the signal
+320 FOR I% = 0 TO 1023
+330   IF I% <= M% THEN REX[I%] = REX[I%] * (0.54 - 0.46 * COS(2*PI*I%/M%))
+340   IF I% > M%  THEN REX[I%] = 0
+350 NEXT I%
+360 '                      'The filter kernel now resides in REX[0] to REX[40]
+370 END
+
+
+TABLE 18-1
+100 'FFT CONVOLUTION
+110 'This program convolves a 10 million point signal with a 400 point filter
+120 'kernel. The input signal is broken into 16000 segments, each with 625 
+125 'points.  1024 point FFTs are used.
+130 '
+130 '                    'INITIALIZE THE ARRAYS
+140 DIM XX[1023]         'the time domain signal (for the FFT)
+150 DIM REX[512]         'real part of the frequency domain (for the FFT)
+160 DIM IMX[512]         'imaginary part of the frequency domain (for the FFT)
+170 DIM REFR[512]        'real part of the filter's frequency response
+180 DIM IMFR[512]        'imaginary part of the filter's frequency response
+190 DIM OLAP[398]        'holds overlapping samples from segment to segment
+200 '
+210 FOR I% = 0 TO 398    'zero the array holding the overlapping samples
+220   OLAP[I%] = 0
+230 NEXT I%
+240 '
+250 '                    'FIND & STORE THE FILTER'S FREQUENCY RESPONSE
+260 GOSUB XXXX           'Mythical sub to load the filter kernel into XX[ ]
+270 GOSUB XXXX           'Mythical FFT subroutine:  XX[ ] -->  REX[ ] & IMX[ ]
+280 FOR F% = 0 TO 512    'Save the frequency response in REFR[ ] & IMFR[ ]
+290   REFR[F%] = REX[F%]
+300   IMFR[F%] = IMX[F%]
+310 NEXT F%
+320 '
+330 '                    'PROCESS EACH OF THE 16000 SEGMENTS
+340 FOR SEGMENT% = 0 TO 15999
+350   '
+360   GOSUB XXXX         'Mythical sub to load next input segment into XX[ ]
+370   GOSUB XXXX         'Mythical FFT sub:  XX[ ]  -->  REX[ ] & IMX[ ]
+380   '                 
+390   FOR F% = 0 TO 512  'Multiply freq. spectrum by the freq. response
+400     TEMP      = REX[F%]*REFR[F%] - IMX[F%]*IMFR[F%]
+410     IMX[F%]  = REX[F%]*IMFR[F%] + IMX[F%]*REFR[F%]
+420     REX[F%]  = TEMP
+430   NEXT F%
+440   '
+450   GOSUB XXXX         'Mythical IFFT sub:  REX[ ] & IMX[ ]  -->  XX[ ]
+460   '                         
+470   FOR I% = 0 TO 398  'Add the last segment's overlap to this segment
+480     XX[I%] = XX[I%] + OLAP[I%]
+490   NEXT I%
+500   '                
+510   FOR I% = 625 TO 1023   'Save samples that will overlap the next segment
+520     OLAP[I%-625] = XX[I%]
+530   NEXT I%
+540   '
+550   GOSUB XXXX         'Mythical sub to output the 625 samples stored 
+560   '                  'in XX[0] to XX[624]
+570   '
+580 NEXT SEGMENT%
+590 '
+600 GOSUB XXXX           'Mythical sub to output all 399 samples in OLAP[ ]
+610 END
+
+
+TABLE 19-1
+100 'RECURSIVE FILTER
+110 '
+120 DIM X[499]           'holds the input signal
+130 DIM Y[499]           'holds the filtered output signal
+140 '
+150 GOSUB XXXX           'Mythical subroutine to calculate the recursion 
+160 '                    'coefficients: A0, A1, A2, B1, B2
+170 '
+180 GOSUB XXXX           'Mythical subroutine to load X[ ] with the input data
+190 '
+200 FOR I% = 2 TO 499
+210    Y[I%] = A0*X[I%] + A1*X[I%-1] + A2*X[I%-2] + B1*Y[I%-1] + B2*Y[I%-2]
+220 NEXT I%
+230 '
+240 END
+
+
+TABLE 20-4
+100 'CHEBYSHEV FILTER-  RECURSION COEFFICIENT CALCULATION
+110 '
+120                        'INITIALIZE VARIABLES
+130 DIM A[22]              'holds the "a" coefficients upon program completion
+140 DIM B[22]              'holds the "b" coefficients upon program completion
+150 DIM TA[22]             'internal use for combining stages
+160 DIM TB[22]             'internal use for combining stages
+170 '
+180 FOR I% = 0 TO 22
+190   A[I%] = 0
+200   B[I%] = 0
+210 NEXT I%
+220 '
+230 A[2] = 1
+240 B[2] = 1
+250 PI = 3.14159265
+260                        'ENTER THE FOUR FILTER PARAMETERS
+270 INPUT "Enter cutoff frequency  (0 to .5):  ", FC
+280 INPUT "Enter  0 for LP,  1 for HP filter:  ", LH
+290 INPUT "Enter percent ripple    (0 to 29):  ", PR
+300 INPUT "Enter number of poles (2,4,...20):  ", NP
+310 '
+320 FOR P% = 1 TO NP/2     'LOOP FOR EACH POLE-PAIR
+330   '
+340   GOSUB 1000           'The subroutine in TABLE 20-5
+350   '
+360   FOR I% = 0 TO 22     'Add coefficients to the cascade
+370     TA[I%] = A[I%]
+380     TB[I%] = B[I%]
+390   NEXT I%
+400   '
+410   FOR I% = 2 TO 22
+420     A[I%] = A0*TA[I%] + A1*TA[I%-1] + A2*TA[I%-2]
+430     B[I%] =      TB[I%] - B1*TB[I%-1] - B2*TB[I%-2]
+440   NEXT I%
+450   '
+460 NEXT P%
+470 '
+480 B[2] = 0                'Finish combining coefficients
+490 FOR I% = 0 TO 20
+500   A[I%] = A[I%+2]
+510   B[I%] = -B[I%+2]
+520 NEXT I%
+530 '
+540 SA = 0                  'NORMALIZE THE GAIN
+550 SB = 0
+560 FOR I% = 0 TO 20
+570   IF LH = 0 THEN SA    =  SA     +  A[I%]
+580   IF LH = 0 THEN SB    =  SB     +  B[I%]
+590   IF LH = 1 THEN SA    =  SA     +  A[I%] * (-1)^I%
+600   IF LH = 1 THEN SB    =  SB     +  B[I%] * (-1)^I%
+610 NEXT I%
+620 '
+630 GAIN = SA / (1 - SB)
+640 '
+650 FOR I% = 0 TO 20
+660    A[I%] = A[I%] / GAIN
+670 NEXT I%
+680 '                     'The final recursion coefficients are in A[ ] & B[ ]
+690 END
+
+
+TABLE 20-5
+1000 'THIS SUBROUTINE IS CALLED FROM TABLE 20-4,  LINE 340
+1010 '
+1020 ' Variables entering subroutine:   PI, FC, LH, PR, HP, P%
+1030 ' Variables exiting subroutine:    A0, A1, A2, B1, B2
+1040 ' Variables used internally:       RP, IP, ES, VX, KX, T, W, M, D, K, 
+1050 '                                  X0, X1, X2, Y1, Y2
+1060 '
+1070 '                     'Calculate the pole location on the unit circle
+1080 RP = -COS(PI/(NP*2) + (P%-1) * PI/NP)
+1090 IP =   SIN(PI/(NP*2) + (P%-1) * PI/NP)
+1100 '
+1110 '                     'Warp from a circle to an ellipse
+1120 IF PR = 0 THEN GOTO 1210
+1130 ES = SQR( (100 / (100-PR))^2 -1 )
+1140 VX = (1/NP) * LOG( (1/ES) + SQR( (1/ES^2) + 1) )
+1150 KX = (1/NP) * LOG( (1/ES) + SQR( (1/ES^2) - 1) )
+1160 KX = (EXP(KX) + EXP(-KX))/2
+1170 RP = RP * ( (EXP(VX) - EXP(-VX) ) /2 ) / KX
+1180 IP  = IP * ( (EXP(VX) + EXP(-VX) ) /2 ) / KX
+1190 '
+1200 '                      's-domain to z-domain conversion
+1210 T  = 2 * TAN(1/2)
+1220 W  = 2*PI*FC
+1230 M  = RP^2 + IP^2
+1240 D = 4 - 4*RP*T + M*T^2
+1250 X0 = T^2/D
+1260 X1 = 2*T^2/D
+1270 X2 = T^2/D
+1280 Y1 = (8 - 2*M*T^2)/D
+1290 Y2 = (-4 - 4*RP*T - M*T^2)/D
+1300 '
+1310 '                     'LP TO LP, or LP TO HP transform
+1320 IF LH = 1 THEN K = -COS(W/2 + 1/2) / COS(W/2 - 1/2)
+1330 IF LH = 0 THEN K =  SIN(1/2 - W/2) / SIN(1/2 + W/2)
+1340 D = 1 + Y1*K - Y2*K^2
+1350 A0 = (X0 - X1*K + X2*K^2)/D
+1360 A1 = (-2*X0*K + X1 + X1*K^2 - 2*X2*K)/D
+1370 A2 = (X0*K^2 - X1*K + X2)/D
+1380 B1 = (2*K + Y1 + Y1*K^2 - 2*Y2*K)/D
+1390 B2 = (-K^2 - Y1*K + Y2)/D
+1400 IF LH = 1 THEN A1 = -A1
+1410 IF LH = 1 THEN B1 = -B1
+1420 '
+1430 RETURN
+
+
+TABLE 24-1
+100 CONVENTIONAL IMAGE CONVOLUTION
+110 '
+120 DIM X[99,99]         'holds the input image,   100 100 pixels
+130 DIM H[28,28]         'holds the filter kernel,   29 29 pixels 
+140 DIM Y[127,127]       'holds the output image, 128 128 pixels
+150 '
+160 FOR R% = 0 TO 127    'loop through each row and column in the output
+170 FOR C% = 0 TO 127    'image calculating the pixel value via Eq. 24-3
+180 '
+190   Y[R%,C%] = 0       'zero the pixel so it can be used as an accumulator
+200 '
+210   FOR J% = 0 TO 28   'multiply each pixel in the kernel by the 
+220   FOR K% = 0 TO 28   'corresponding pixel in the input image, and add to
+225                      'the accumulator
+230      Y[R%,C%] = Y[R%,C%] + H[J%,K%] * X[R%-J%,C%-J%]
+240   NEXT K%
+250   NEXT J%
+260 '
+270 NEXT C%
+280 NEXT R%
+290 '   
+300 END
+
+
+TABLE 25-1
+100 'SKELETONIZATION PROGRAM
+110 'Object pixels have a value of 0 (displayed as black)
+120 'Background pixels have a value of 255 (displayed as white)
+130 '
+140 DIM X%[149,149]        'X%[  ,  ] holds the image being processed
+150 '
+160 GOSUB XXXX             'Mythical subroutine to load X%[ , ]
+170 '
+180 FOR ITER% = 0 TO 5     'Run through six iteration loops
+190 '
+200   FOR R% = 1 TO 148    'Loop through each pixel in the image.
+210   FOR C% = 1 TO 148    'Subroutine 5000 (Table 25-2) indicates which 
+220     GOSUB 5000         'pixels can be changed from black to white,
+230   NEXT C%              'by marking the pixels with a value of 1.
+240   NEXT R%
+250 '
+260   FOR R% = 0 TO 149    'Loop through each pixel in the image changing
+270   FOR C% = 0 TO 149    'the marked pixels from black to white.
+280     IF X%(R%,C%) = 1 THEN X%(R%,C%) = 255
+290   NEXT C%
+300   NEXT R%
+310 '
+320 NEXT ITER%
+330 '
+340 END
+
+
+TABLE 25-2
+5000 'Subroutine to determine if the pixel at X%[R%,C%] can be removed.
+5010 'If all four of the rules are satisfied, then X%(R%,C%], is set to a 
+5020 'value of 1, indicating it should be removed at the end of the iteration.
+5030 '
+5040 'RULE #1:  Do nothing if the pixel already white
+5050 IF X%(R%,C%) = 255 THEN RETURN
+5060 '
+5070 '
+5080 'RULE #2:  Do nothing if all of the close neighbors are black
+5090 IF  X%[R% -1,C%  ] <> 255 AND X%[R%  ,C%+1] <> 255 AND 
+     X%[R%+1,C%  ] <> 255 AND X%[R%  ,C% -1] <> 255  THEN RETURN
+5100 '
+5110 '
+5120 'RULE #3:  Do nothing if only a single neighbor pixel is black
+5130 COUNT% = 0
+5140 IF X%[R%-1,C%-1]  = 0 THEN COUNT% = COUNT% + 1
+5150 IF X%[R%-1,C%  ]  = 0 THEN COUNT% = COUNT% + 1
+5160 IF X%[R%-1,C%+1]  = 0 THEN COUNT% = COUNT% + 1
+5170 IF X%[R%  ,C%+1]  = 0 THEN COUNT% = COUNT% + 1
+5180 IF X%[R%+1,C%+1]  = 0 THEN COUNT% = COUNT% + 1
+5190 IF X%[R%+1,C%  ]  = 0 THEN COUNT% = COUNT% + 1
+5200 IF X%[R%+1,C%-1]  = 0 THEN COUNT% = COUNT% + 1
+5210 IF X%[R%  ,C%-1]  = 0 THEN COUNT% = COUNT% + 1
+5220 IF COUNT% = 1 THEN RETURN
+5230 '
+5240 '
+5250 'RULE 4:  Do nothing if the neighbors are unconnected. 
+5260 'Determine this by counting the black-to-white transitions
+5270 'while moving clockwise through the 8 neighboring pixels.
+5280 COUNT% = 0
+5290 IF X%[R%-1,C%-1]  = 0 AND X%[R%-1,C%  ]  > 0  THEN COUNT% = COUNT% +
+1
+5300 IF X%[R%-1,C%  ]  = 0 AND X%[R%-1,C%+1]  > 0  AND X%[R%  ,C%+1] > 0  
+     THEN COUNT% = COUNT% + 1
+5310 IF X%[R%-1,C%+1]  = 0 AND X%[R%  ,C%+1]  > 0  THEN COUNT% = COUNT%
++ 1
+5320 IF X%[R%  ,C%+1]  = 0 AND X%[R%+1,C%+1]  > 0  AND X%[R%+1,C%  ] > 0  
+     THEN COUNT% = COUNT% + 1
+5330 IF X%[R%+1,C%+1]  = 0 AND X%[R%+1,C%  ]  > 0  THEN COUNT% =
+COUNT% + 1
+5340 IF X%[R%+1,C%  ]  = 0 AND X%[R%+1,C%-1]  > 0  AND X%[R%  ,C%-1] > 0  
+     THEN COUNT% = COUNT% + 1
+5350 IF X%[R%+1,C%-1]  = 0 AND X%[R%  ,C%-1]  > 0  THEN COUNT% = COUNT%
++ 1
+5360 IF X%[R%  ,C%-1]  = 0 AND X%[R%-1,C%-1]  > 0  AND X%[R%-1,C%  ] > 0  
+     THEN COUNT% = COUNT% + 1
+5370 IF COUNT% > 1 THEN RETURN
+5380 '
+5390 '
+5400 'If all rules are satisfied, mark the pixel to be set to white at the 
+5410 X%(R%,C%) = 1              'end of the iteration
+5420 '
+5430 RETURN
+
+
+TABLE 26-1
+100 'NEURAL NETWORK (FOR THE FLOW DIAGRAM IN FIG. 26-5)
+110 '
+120 DIM X1[15]      'holds the input values
+130 DIM X2[4]       'holds the values exiting the hidden layer
+140 DIM X3[2]       'holds the values exiting the output layer
+150 DIM WH[4,15]    'holds the hidden layer weights
+160 DIM WO[2,4]     'holds the output layer weights
+170 '
+180 GOSUB XXXX      'mythical sub to load X1[ ] with the input data
+190 GOSUB XXXX      'mythical sub to load the weights, WH[ , ] & W0[ , ]
+200 '
+210 '                                     'FIND THE HIDDEN NODE VALUES, X2[  ]
+220 FOR J% = 1 TO 4                       'loop for each hidden layer node
+230   ACC = 0                             'clear accumulator variable, ACC
+240   FOR I% = 1 TO 15                    'weight and sum each input node  
+250     ACC = ACC + X1[I%] * WH[J%,I%]
+260   NEXT I%
+270   X2[J%] = 1 / (1 + EXP(-ACC) )       'pass value through the sigmoid
+280 NEXT J%
+290 '
+300 '                                     'FIND THE OUTPUT NODE VALUES, X3[]
+310 FOR J% = 1 TO 2                       'loop for each output layer node
+320   ACC = 0                             'clear accumulator variable, ACC
+330   FOR I% = 1 TO 4                     'weight and sum each hidden node  
+340     ACC = ACC + X2[I%] * WO[J%,I%]
+350   NEXT I%
+360   X3[J%] = 1 / (1 + EXP(-ACC) )       'pass value through the sigmoid
+370 NEXT J%
+380 '
+390 END
+
+
+TABLE 26-2
+100 'NEURAL NETWORK TRAINING (Determination of weights)
+110 '
+120                                 'INITIALIZE
+130 MU = .000005                    'iteration step size
+140 DIM X1[101]                     'holds the input layer signal + bias term
+150 DIM X2[10]                      'holds the hidden layer signal
+160 DIM WH[10,101]                  'holds hidden layer weights
+170 DIM WO[10]                      'holds output layer weights
+180 '
+190 FOR H% = 1 TO 10                'SET WEIGHTS TO RANDOM VALUES
+200   WO[H%] = (RND-0.5)            'output layer weights: -0.5 to 0.5
+210   FOR I% = 1 TO 101             'hidden layer weights: -0.0005 to 0.0005
+220     WH[H%,I%] = (RND-0.5)/1000
+230   NEXT I%
+240 NEXT H%
+250 '
+260 '                               'ITERATION LOOP
+270 FOR ITER% = 1 TO 800            'loop for 800 iterations
+280 '
+290   ESUM = 0                      'clear the error accumulator, ESUM
+300   '
+310   FOR LETTER% = 1 TO 260        'loop for each letter in the training set
+320     GOSUB 1000                  'load X1[ ] with training set
+330     GOSUB 2000                  'find the error for this letter, ELET
+340     ESUM = ESUM + ELET^2        'accumulate error for this iteration
+350     GOSUB 3000                  'find the new weights
+360   NEXT LETTER%
+370   '
+380   PRINT  ITER%  ESUM            'print the progress to the video screen
+390 '
+400 NEXT ITER%
+410 '
+420 GOSUB XXXX                      'mythical subroutine to save the weights
+430 END
+
+
+TABLE 26-3
+1000 'SUBROUTINE TO LOAD X1[ ] WITH IMAGES FROM THE DATABASE
+1010 'Variables entering routine: LETTER%
+1020 'Variables exiting routine: X1[1] to X1[100],  X1[101] = 1, CORRECT
+1030 '
+1040 'The variable, LETTER%, between 1 and 260, indicates which image in the
+1045 'database is to be 
+1050 'returned in X1[1] to X1[100].  The bias node, X1[101], always has a
+1055 'value of one.  The variable, 
+1060 'CORRECT, has a value of one if the image being returned is a vowel, and
+1065 'zero otherwise.
+1070 '(The details of this subroutine are unimportant, and not listed here).
+1900 RETURN
+
+2000 'SUBROUTINE TO CALCULATE THE ERROR WITH THE CURRENT WEIGHTS
+2010 'Variables entering routine:  X1[ ], X2[ ], WI[ , ], WH[ ], CORRECT
+2020 'Variables exiting routine:   ELET
+2030 '
+2040 '                                     'FIND THE HIDDEN NODE VALUES, X2[ ]
+2050 FOR H% = 1 TO 10                      'loop for each hidden nodes
+2060   ACC = 0                             'clear the accumulator
+2070   FOR I% = 1 TO 101                   'weight and sum each input node  
+2080     ACC = ACC + X1[I%] * WH[H%,I%]
+2090   NEXT I%
+2100   X2[H%] = 1 / (1 + EXP(-ACC) )       'pass summed value through sigmoid
+2110 NEXT H%
+2120 '
+2130 '                                     'FIND THE OUTPUT VALUE: X3
+2140 ACC = 0                               'clear the accumulator
+2150 FOR H% = 1 TO 10                      'weight and sum each hidden node
+2160   ACC = ACC + X2[H%] * WO[H%]
+2170 NEXT H%
+2180 X3 = 1 / (1 + EXP(-ACC) )             'pass summed value through sigmoid
+2190 '
+2200 '                                     'FIND ERROR FOR THIS LETTER, ELET
+2210 ELET = (CORRECT - X3)                 'find the error
+2220 IF CORRECT = 1 THEN ELET = ELET*5     'give extra weight to targets
+2230 '
+2240 RETURN
+
+3000 'SUBROUTINE TO FIND NEW WEIGHTS                                    
+3010 'Variables entering routine:  X1[ ], X2[ ], X3, WI[ , ], WH[ ], ELET, MU
+3020 'Variables exiting routine:   WI[ , ], WH[ ]
+3030 '
+3040 '                                      'FIND NEW WEIGHTS FOR INPUT NODES
+3050 FOR H% = 1 TO 10
+3060   FOR I% = 1 TO 101
+3070     SLOPEO = X3 * (1 - X3)
+3080     SLOPEH = X2(H%) * (1 - X2[H%])
+3090     DX3DW = X1[I%] * SLOPEH * WO[H%] * SLOPEO
+3100     WH[H%,I%] = WH[H%,I%] + DX3DW * ELET * MU
+3110   NEXT I%
+3120 NEXT H%
+3130 '
+3140 '                                     'FIND NEW WEIGHTS FOR HIDDEN NODES
+3150 FOR H% = 1 TO 10
+3160   SLOPEO = X3 * (1 - X3)
+3170   DX3DW = X2[H%] * SLOPEO
+3180   WO[H%] = WO[H%] + DX3DW * ELET * MU
+3190 NEXT H%
+3200 '
+3210 RETURN
+
+
+TABLE 26-4
+100 'ITERATIVE DESIGN OF RECURSIVE FILTER
+110 '
+120                                'INITIALIZE
+130 N%  = 256                      'number of points in FFT
+140 NP% = 8                        'number of poles in filter
+150 DELTA = .00001                 'perturbation increment
+160 MU = .2                        'iteration step size
+170 DIM REX[255]                   'real part of signal during FFT
+180 DIM IMX[255]                   'imaginary part of signal during FFT
+190 DIM T[128]                     'desired frequency response (mag only)
+200 DIM A[8]                       'the "a" recursion coefficients
+210 DIM B[8]                       'the "b" recursion coefficients
+220 DIM SA[8]                      'slope for "a" coefficients
+230 DIM SB[8]                      'slope for "b" coefficients
+240 '
+250 GOSUB XXXX                     'mythical subroutine to load T[ ]
+260 '
+270 FOR P% = 0 TO NP%              'initialize coefficients to identity system
+280   A[P%] = 0  
+290   B[P%] = 0
+300 NEXT P%
+310 A[0] = 1
+320 '
+330 '                                  'ITERATION LOOP
+340 FOR ITER% = 1 TO 100               'loop for desired number of iterations
+350   GOSUB 2000                       'calculate new coefficients
+360   PRINT  ITER%  ENEW  MU           'print current status to video screen
+370   IF ENEW > EOLD THEN MU = MU/2    'adjust the value of MU
+380 NEXT ITER%
+390 '                                                            
+400 ' 
+410 FOR P% = 0 TO NP%    'PRINT OUT THE COEFFICIENTS
+420   PRINT  A[P%]    B[P%]
+430 NEXT P%
+440 '
+450 END
+
+
+TABLE 26-5
+2000 'SUBROUTINE TO CALCULATE THE NEW RECURSION COEFFICIENTS
+2010 'Variables entering routine:  A[ ], B[ ], DELTA, MU
+2020 'Variables exiting routine:   A[ ], B[ ], EOLD, ENEW
+2030 '
+2040 GOSUB 3000                     'FIND THE CURRENT ERROR
+2050 EOLD = ER                      'store current error in variable, EOLD
+2060 '
+2070                                'FIND THE ERROR SLOPES 
+2080 FOR P% = 0 TO NP%              'loop through each "a" coefficient
+2090   A[P%] = A[P%] + DELTA        'add a small increment to the coefficient
+2100   GOSUB 3000                   'find the error with the change
+2110   SA[P%] = (ER-EOLD)/DELTA     'calculate the error slope, store in SA[ ]
+2120   A[P%] = A[P%] - DELTA        'return coefficient to original value
+2130 NEXT P%
+2140 '
+2150 FOR P% = 1 TO NP%              'repeat process for each "b" coefficient
+2160   B[P%] = B[P%] + DELTA                 
+2170   GOSUB 3000
+2180   SB[P%] = (ER-EOLD)/DELTA     'calculate the error slope, store in SB[ ]
+2190   B[P%] = B[P%] - DELTA
+2200 NEXT P%
+2210 '                                 'CALCULATE NEW COEFFICIENTS
+2220 FOR P% = 0 TO NP%                 'loop through each coefficient
+2230   A[P%] = A[P%] - SA[P%] * MU     'adjust coefficients to move "downhill"
+2240   B[P%] = B[P%] - SB[P%] * MU
+2250 NEXT P%
+2260 '
+2270 GOSUB 3000                        'FIND THE NEW ERROR
+2280 ENEW = ER                         'store new error in variable, ENEW
+2290 '
+2300 RETURN
+
+3000 'SUBROUTINE TO CALCULATE THE FREQUENCY DOMAIN ERROR
+3010 'Variables entering routine:  A[ ], B[ ], T[ ]
+3020 'Variables exiting routine:   ER   
+3030 '
+3040 FOR I% = 0 TO N%-1                'LOAD SHIFTED  IMPULSE INTO IMX[ ]
+3050  REX[I%] = 0
+3060  IMX[I%] = 0
+3070 NEXT I%
+3080 IMX[12] = 1
+3090 '                                 'CALCULATE IMPULSE RESPONSE
+3100 FOR I% = 12 TO N%-1
+3110  FOR J% = 0 TO NP%
+3120    REX[I%] = REX[I%]  +  A[J%] * IMX[I%-J%]  +  B[J%] * REX[I%-J%]
+3130  NEXT J%
+3140 NEXT I%
+3150 IMX[12] = 0
+3160 '                                 'CALCULATE THE FFT
+3170 GOSUB 1000                        'Table 12-4, uses REX[ ], IMX[ ], N%
+3180 '
+3190                                     'FIND FREQUENCY DOMAIN ERROR
+3200 ER = 0                              'zero ER, to use as an accumulator
+3210 FOR I% = 0 TO N%/2                  'loop through each positive frequency 
+3220   MAG = SQR(REX[I%]^2 + IMX[I%]^2)  'rectangular --> polar conversion
+3230   ER = ER + ( MAG - T[I%] )^2       'calculate & accumulate squared error
+3240 NEXT I%
+3250 ER = SQR( ER/(N%/2+1) )             'finish calculation of error, ER 
+3260 '
+3270 RETURN
+
+
