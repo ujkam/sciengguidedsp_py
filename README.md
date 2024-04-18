@@ -1,6 +1,4 @@
-# sciengguidedsp_py
-
-Python Implementation of the sample code in The Scientist and Engineer's Guide to Digital Signal Processing
+# Python Implementation of the sample code in The Scientist and Engineer's Guide to Digital Signal Processing
 
 This notebook contains Python implementations of the code in [The Scientist and Engineer's Guide to Digital Signal Processing by By Steven W. Smith, Ph.D.](https://www.dspguide.com/)  The code is an almost exact translation of the BASIC code into Python, which will result in bad/low-performance/ugly python code (e.g. looping everything). When rewriting the sample code, I've purposefully left out all sort of nice python features (e.g. enumerate) to match the original code closely.
 
